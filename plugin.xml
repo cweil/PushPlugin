@@ -12,10 +12,9 @@
 
 	<license>MIT</license>
 
-	<!-- this doesn't seem to add the plugin to the window.plugins object. Instead it gets added by the PushNotification.js file. Not sure why. -->
-	<js-module src="www/PushNotification.js" name="PushNotification">
-		<clobbers target="plugins" />
-	</js-module>
+	<js-module src="www/PushNotification.js" name="pushNotification">
+        <clobbers target="plugins" />
+    </js-module>
 
 	<!-- android -->
 	<platform name="android">
