@@ -28,7 +28,6 @@ public class PushHandlerActivity extends Activity
 		}
 		processPushBundle(isPushPluginActive);
 
-		//No longer applicable with Google Play Services API
 		//GCMIntentService.cancelNotification(this);
 
 		finish();

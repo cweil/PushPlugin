@@ -12,12 +12,11 @@
 
 	<license>MIT</license>
 
-	<asset src="www/PushNotification.js" target="PushNotification.js" />
+	<!-- this doesn't seem to add the plugin to the window.plugins object. Instead it gets added by the PushNotification.js file. Not sure why. -->
+	<js-module src="www/PushNotification.js" name="PushNotification">
+		<clobbers target="plugins" />
+	</js-module>
 
-	<engines>
-		<engine name="cordova" version=">=3.0.0" />
-	</engines>	
-	
 	<!-- android -->
 	<platform name="android">
 
@@ -28,6 +27,7 @@
 		</config-file>
 
 		<config-file target="AndroidManifest.xml" parent="/manifest">
+			<uses-permission android:name="android.permission.INTERNET" />
 			<uses-permission android:name="android.permission.GET_TASKS" />
 			<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 			<uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -39,19 +39,17 @@
 
 		<config-file target="AndroidManifest.xml" parent="/manifest/application">
 			<activity android:name="com.plugin.gcm.PushHandlerActivity"/>
-			<receiver android:name="com.plugin.gcm.CordovaGCMBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
+			<receiver android:name="com.plugin.gcm.CordovaBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND" >
 				<intent-filter>
 					<action android:name="com.google.android.c2dm.intent.RECEIVE" />
-					<action android:name="com.google.android.c2dm.intent.REGISTRATION" />
 					<category android:name="$PACKAGE_NAME" />
 				</intent-filter>
 			</receiver>
 			<service android:name="com.plugin.gcm.GCMIntentService" />
 		</config-file>
 
-		<source-file src="src/android/libs/gcm.jar" target-dir="libs/" />
-		<source-file src="src/android/com/plugin/gcm/CordovaGCMBroadcastReceiver.java" target-dir="src/com/plugin/gcm/" />
-		<source-file src="src/android/com/plugin/gcm/GCMIntentService.java" target-dir="src/com/plugin/gcm/" />
+		<source-file src="src/android/libs/google-play-services.jar" target-dir="libs/" />
+		<source-file src="src/android/com/plugin/gcm/CordovaBroadcastReceiver.java" target-dir="src/com/plugin/gcm/" />
 		<source-file src="src/android/com/plugin/gcm/PushHandlerActivity.java" target-dir="src/com/plugin/gcm/" />
 		<source-file src="src/android/com/plugin/gcm/PushPlugin.java" target-dir="src/com/plugin/gcm/" />
 		<source-file src="src/android/com/plugin/android-support-v13.jar" target-dir="libs/" />
