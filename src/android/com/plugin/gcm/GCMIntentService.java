@@ -1,163 +1,59 @@
 package com.plugin.gcm;
 
-import java.util.List;
-
-import com.google.android.gcm.GCMBaseIntentService;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.annotation.SuppressLint;
-import android.app.ActivityManager;
-import android.app.ActivityManager.RunningTaskInfo;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
+import android.app.IntentService;
 import android.content.Intent;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-@SuppressLint("NewApi")
-public class GCMIntentService extends GCMBaseIntentService {
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
-	public static final int NOTIFICATION_ID = 237;
-	private static final String TAG = "GCMIntentService";
-	
+public class GCMIntentService extends IntentService {
+	public static final int NOTIFICATION_ID = 1;
+	private final String TAG = "GCMIntentService";
+	NotificationCompat.Builder builder;
+
 	public GCMIntentService() {
-		super("GCMIntentService");
+		super("GcmIntentService");
 	}
 
 	@Override
-	public void onRegistered(Context context, String regId) {
-
-		Log.v(TAG, "onRegistered: "+ regId);
-
-		JSONObject json;
-
-		try
-		{
-			json = new JSONObject().put("event", "registered");
-			json.put("regid", regId);
-
-			Log.v(TAG, "onRegistered: " + json.toString());
-
-			// Send this JSON data to the JavaScript application above EVENT should be set to the msg type
-			// In this case this is the registration ID
-			PushPlugin.sendJavascript( json );
-
-		}
-		catch( JSONException e)
-		{
-			// No message to the user is sent, JSON failed
-			Log.e(TAG, "onRegistered: JSON exception");
-		}
-	}
-
-	@Override
-	public void onUnregistered(Context context, String regId) {
-		Log.d(TAG, "onUnregistered - regId: " + regId);
-	}
-
-	@Override
-	protected void onMessage(Context context, Intent intent) {
-		Log.d(TAG, "onMessage - context: " + context);
-
-		// Extract the payload from the message
+	protected void onHandleIntent(Intent intent) {
+		Log.d(TAG, "onHandleIntent()");
 		Bundle extras = intent.getExtras();
-		if (extras != null)
-		{
-			boolean	foreground = this.isInForeground();
+		GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
+		// The getMessageType() intent parameter must be the intent you received
+		// in your BroadcastReceiver.
+		String messageType = gcm.getMessageType(intent);
 
-			extras.putBoolean("foreground", foreground);
+		if (!extras.isEmpty()) { // has effect of unparcelling Bundle
+			/*
+			 * Filter messages based on message type. Since it is likely that GCM
+			 * will be extended in the future with new message types, just ignore
+			 * any message types you're not interested in, or that you don't
+			 * recognize.
+			 */
+			if (GoogleCloudMessaging.
+			MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
+				Log.d(TAG, "GCM Message with type=\"ERROR\"");
+			} else if (GoogleCloudMessaging.
+			MESSAGE_TYPE_DELETED.equals(messageType)) {
+				Log.d(TAG, "GCM Message with type=\"DELETED\"");
+				// If it's a regular GCM message, do some work.
+			} else if (GoogleCloudMessaging.
+			MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 
-			if (foreground)
-				PushPlugin.sendExtras(extras);
-			else
-				createNotification(context, extras);
+				// Post notification of received message.
+				sendMessageAsJson(extras);
+				Log.i(TAG, "Received: " + extras.toString());
+			}
 		}
 	}
 
-	public void createNotification(Context context, Bundle extras)
-	{
-		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-		String appName = getAppName(this);
-
-		Intent notificationIntent = new Intent(this, PushHandlerActivity.class);
-		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		notificationIntent.putExtra("pushBundle", extras);
-
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);		
-
-		NotificationCompat.Builder mBuilder = 
-			new NotificationCompat.Builder(context)
-				.setSmallIcon(context.getApplicationInfo().icon)
-				.setWhen(System.currentTimeMillis())
-				.setContentTitle(appName)
-				.setTicker(appName)
-				.setContentIntent(contentIntent);
-
-		String message = extras.getString("message");
-		if (message != null) {
-			mBuilder.setContentText(message);
-		} else {
-			mBuilder.setContentText("<missing message content>");
-		}
-
-		String msgcnt = extras.getString("msgcnt");
-		if (msgcnt != null) {
-			mBuilder.setNumber(Integer.parseInt(msgcnt));
-		}
-
-		mNotificationManager.notify((String) appName, NOTIFICATION_ID, mBuilder.build());
-		tryPlayRingtone();
-	}
-
-	private void tryPlayRingtone() 
-	{
-		try {
-			Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-			Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
-			r.play();
-		} 
-		catch (Exception e) {
-			Log.e(TAG, "failed to play notification ringtone");
-		}
-	}
-	
-	public static void cancelNotification(Context context)
-	{
-		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-		mNotificationManager.cancel((String)getAppName(context), NOTIFICATION_ID);	
-	}
-	
-	private static String getAppName(Context context)
-	{
-		CharSequence appName = 
-				context
-					.getPackageManager()
-					.getApplicationLabel(context.getApplicationInfo());
-		
-		return (String)appName;
-	}
-	
-	public boolean isInForeground()
-	{
-		ActivityManager activityManager = (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-		List<RunningTaskInfo> services = activityManager
-				.getRunningTasks(Integer.MAX_VALUE);
-
-		if (services.get(0).topActivity.getPackageName().toString().equalsIgnoreCase(getApplicationContext().getPackageName().toString()))
-			return true;
-
-		return false;
-	}	
-
-	@Override
-	public void onError(Context context, String errorId) {
-		Log.e(TAG, "onError - errorId: " + errorId);
+	private void sendMessageAsJson(Bundle extras) {
+		PushPlugin.sendExtras(extras);
 	}
 
 }
+
+
