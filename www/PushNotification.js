@@ -57,9 +57,13 @@ PushNotification.prototype.setApplicationIconBadgeNumber = function(successCallb
 
 //-------------------------------------------------------------------
 
-if(!window.plugins) {
-    window.plugins = {};
-}
-if (!window.plugins.pushNotification) {
+PushNotification.install = function() {
+    if (!window.plugins) {
+        window.plugins = {};
+    }
+    
     window.plugins.pushNotification = new PushNotification();
-}
+    return window.plugins.pushNotification;
+};
+
+cordova.addConstructor(PushNotification.install);

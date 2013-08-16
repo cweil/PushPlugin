@@ -2,13 +2,10 @@ package com.plugin.gcm;
 
 import java.util.List;
 
-import com.google.android.gcm.GCMBaseIntentService;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
+import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -21,7 +18,7 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 @SuppressLint("NewApi")
-public class GCMIntentService extends GCMBaseIntentService {
+public class GCMIntentService extends IntentService {
 
 	public static final int NOTIFICATION_ID = 237;
 	private static final String TAG = "GCMIntentService";
@@ -31,39 +28,8 @@ public class GCMIntentService extends GCMBaseIntentService {
 	}
 
 	@Override
-	public void onRegistered(Context context, String regId) {
-
-		Log.v(TAG, "onRegistered: "+ regId);
-
-		JSONObject json;
-
-		try
-		{
-			json = new JSONObject().put("event", "registered");
-			json.put("regid", regId);
-
-			Log.v(TAG, "onRegistered: " + json.toString());
-
-			// Send this JSON data to the JavaScript application above EVENT should be set to the msg type
-			// In this case this is the registration ID
-			PushPlugin.sendJavascript( json );
-
-		}
-		catch( JSONException e)
-		{
-			// No message to the user is sent, JSON failed
-			Log.e(TAG, "onRegistered: JSON exception");
-		}
-	}
-
-	@Override
-	public void onUnregistered(Context context, String regId) {
-		Log.d(TAG, "onUnregistered - regId: " + regId);
-	}
-
-	@Override
-	protected void onMessage(Context context, Intent intent) {
-		Log.d(TAG, "onMessage - context: " + context);
+	protected void onHandleIntent(Intent intent) {
+		Log.d(TAG, "onMessage()");
 
 		// Extract the payload from the message
 		Bundle extras = intent.getExtras();
@@ -76,7 +42,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			if (foreground)
 				PushPlugin.sendExtras(extras);
 			else
-				createNotification(context, extras);
+				createNotification(getBaseContext(), extras);
 		}
 	}
 
@@ -154,10 +120,5 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 		return false;
 	}	
-
-	@Override
-	public void onError(Context context, String errorId) {
-		Log.e(TAG, "onError - errorId: " + errorId);
-	}
 
 }
