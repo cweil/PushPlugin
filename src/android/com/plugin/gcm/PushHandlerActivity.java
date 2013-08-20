@@ -61,15 +61,8 @@ public class PushHandlerActivity extends Activity
 	 */
 	private void forceMainActivityReload()
 	{
-		//PackageManager pm = getPackageManager();
-		//Intent intent = pm.getLaunchIntentForPackage(getApplicationContext().getPackageName());
-		
-		// Intent intent = new Intent(Intent.ACTION_MAIN);
-	    // intent.setComponent(ComponentName.unflattenFromString("com.phonegap.hello_world/com.phonegap.hello_world.HelloWorld"));
-		// intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
 
 		Intent intent = new Intent(getApplicationContext(), com.phonegap.hello_world.HelloWorld.class);
-		// intent.setComponent(ComponentName.unflattenFromString("com.phonegap.hello_world/.HelloWorld"));
 		intent.setAction(Intent.ACTION_MAIN);
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
 
