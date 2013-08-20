@@ -25,6 +25,7 @@ public class PushHandlerActivity extends Activity
 		boolean isPushPluginActive = PushPlugin.isActive(); 
 		if (!isPushPluginActive) {
 			forceMainActivityReload();
+			Log.d(TAG, "restarted main activity");
 		}
 		processPushBundle(isPushPluginActive);
 
@@ -32,6 +33,7 @@ public class PushHandlerActivity extends Activity
 		//GCMIntentService.cancelNotification(this);
 
 		finish();
+		
 	}
 
 	/**
@@ -59,9 +61,20 @@ public class PushHandlerActivity extends Activity
 	 */
 	private void forceMainActivityReload()
 	{
-		PackageManager pm = getPackageManager();
-		Intent launchIntent = pm.getLaunchIntentForPackage(getApplicationContext().getPackageName());    		
-		startActivity(launchIntent);
+		//PackageManager pm = getPackageManager();
+		//Intent intent = pm.getLaunchIntentForPackage(getApplicationContext().getPackageName());
+		
+		// Intent intent = new Intent(Intent.ACTION_MAIN);
+	    // intent.setComponent(ComponentName.unflattenFromString("com.phonegap.hello_world/com.phonegap.hello_world.HelloWorld"));
+		// intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+
+		Intent intent = new Intent(getApplicationContext(), com.phonegap.hello_world.HelloWorld.class);
+		// intent.setComponent(ComponentName.unflattenFromString("com.phonegap.hello_world/.HelloWorld"));
+		intent.setAction(Intent.ACTION_MAIN);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+
+		startActivity(intent);
+
 	}
 
 }
